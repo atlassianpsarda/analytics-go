@@ -375,10 +375,10 @@ func (c *client) loop() {
 	for {
 		select {
 		case msg := <-c.msgs:
-			c.push(&mq, msg, wg, ex)
+			c.push(mq, msg, wg, ex)
 
 		case <-tick.C:
-			c.flush(&mq, wg, ex)
+			c.flush(mq, wg, ex)
 
 		case <-c.quit:
 			c.debugf("exit requested – draining messages")
@@ -387,10 +387,10 @@ func (c *client) loop() {
 			// messages can be pushed and otherwise the loop would never end.
 			close(c.msgs)
 			for msg := range c.msgs {
-				c.push(&mq, msg, wg, ex)
+				c.push(mq, msg, wg, ex)
 			}
 
-			c.flush(&mq, wg, ex)
+			c.flush(mq, wg, ex)
 			c.debugf("exit")
 			return
 		}
