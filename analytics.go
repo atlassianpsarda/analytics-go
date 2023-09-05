@@ -95,7 +95,13 @@ func NewWithConfig(writeKey string, config Config) (cli Client, err error) {
 		quit:     make(chan struct{}),
 		shutdown: make(chan struct{}),
 		http:     makeHttpClient(config.Transport),
+		mu:       &sync.Mutex{},
 	}
+	mq := messageQueue{
+		maxBatchSize:  c.BatchSize,
+		maxBatchBytes: c.maxBatchBytes(),
+	}
+	c.mq = &mq
 
 	go c.loop()
 
@@ -364,12 +370,7 @@ func (c *client) loop() {
 	ex := newExecutor(c.maxConcurrentRequests)
 	defer ex.close()
 
-	mq := messageQueue{
-		maxBatchSize:  c.BatchSize,
-		maxBatchBytes: c.maxBatchBytes(),
-	}
-	c.mq = &mq
-	c.mu = &sync.Mutex{}
+	mq := c.mq
 
 	for {
 		select {
